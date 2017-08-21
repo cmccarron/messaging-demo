@@ -11,8 +11,8 @@ self.addEventListener('push', function(event) {
 		icon: 'images/ccard.png',
 		vibrate: [200, 100, 200, 100, 200, 100, 400],
 		actions: [
-			{ action: 'accept', title: 'Yes', icon: 'images/yes.png' },
-			{ action: 'decline', title: 'No', icon: 'images/no.png' }
+			{ action: 'accept', title: 'Accept', icon: 'images/yes.png' },
+			{ action: 'decline', title: 'Decline', icon: 'images/no.png' }
 		]
 	})
 });
