@@ -39,6 +39,8 @@ function initializeMessaging(serviceWorker) {
 
 	if(ServiceWorkerRegistration.prototype.showNotification) {
 		if(Notification.permission !== 'denied') {
+			document.querySelector('.js-test-notification').disabled = false;
+
 			if(window.PushManager) {
 				console.log('Push messaging is supported');
 

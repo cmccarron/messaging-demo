@@ -8,9 +8,11 @@ self.addEventListener('push', function(event) {
 	// todo: build from the event
 	self.registration.showNotification('Budget Recommendation', {
 		body: 'What would you like to do with this budget recommendation?',
+		icon: 'images/ccard.png',
+		vibrate: [200, 100, 200, 100, 200, 100, 400],
 		actions: [
-			{ action: 'accept', title: 'Accept' },
-			{ action: 'decline', title: 'Decline' }
+			{ action: 'accept', title: 'Yes', icon: 'images/yes.png' },
+			{ action: 'decline', title: 'No', icon: 'images/no.png' }
 		]
 	})
 });
