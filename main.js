@@ -5,115 +5,64 @@ window.addEventListener('load', initialize);
 function initialize() {
 	console.log('Initializing application');
 	
-	var serviceWorker = navigator.serviceWorker;
+	const config = {
+		apiKey: "AIzaSyB2i9SU0sLYYbKc6u2btYHtmEOEtkqiqss",
+		authDomain: "media-group-notifications.firebaseapp.com",
+		databaseURL: "https://media-group-notifications.firebaseio.com",
+		projectId: "media-group-notifications",
+		storageBucket: "media-group-notifications.appspot.com",
+		messagingSenderId: "102046236655"
+	};
 
-	if(serviceWorker) {
-		console.log('Service workers are supported');
+	firebase.initializeApp(config);
 
-		navigator.serviceWorker.register('./messaging-sw.js').then(function() {
-			initializeMessaging(serviceWorker);
+	const messaging = firebase.messaging();	
+
+	// Manually wire up the service worker since the automatic configuration won't find it unless it's
+	// at the root. This allows the app to be hosted from a context root i.e. https://www.apps.com/myapp/
+	if(navigator.serviceWorker) {
+		console.log('Registering service worker');
+
+		navigator.serviceWorker.register('./firebase-messaging-sw.js', { scope: 'firebase-cloud-messaging-push-scope' }).then(function (registration) {
+			messaging.useServiceWorker(registration);
 		});
-
-		getToggle().addEventListener('click', function() {
-			if(this.checked) {
-				subscribe();
-			} else {
-				unsubscribe();
-			}
-		});
-
-		document.querySelector('.js-test-notification').addEventListener('click', testNotification);
 	} else {
-		console.log('Service workers are not supported');
+		console.info('Service worker not supported');
 	}
-}
 
-function getToggle() {
-	return document.querySelector('.js-toggle-messaging');
-}
-
-function initializeMessaging(serviceWorker) {
-	console.log('Initializing push messaging');
-
-	var toggle = getToggle();	
-
-	if(ServiceWorkerRegistration.prototype.showNotification) {
-		if(Notification.permission !== 'denied') {
-			document.querySelector('.js-test-notification').disabled = false;
-
-			if(window.PushManager) {
-				console.log('Push messaging is supported');
-
-				serviceWorker.ready.then(function(registration) {
-					registration.pushManager.getSubscription().then(function(subscription) {
-						if(subscription) {
-							onSubscribed(subscription);
-
-							toggle.checked = true;
-						} else {
-							console.log('Not subscribed to push messages');
-						}
-					});
-				}).catch(function(e) {
-					console.error('Unable to get subscription: ' + e);
-				});
-			} else {
-				console.log('Push messaging is not supported');
-			}
-		} else {
-			console.log('Notifications are disabled by the user');
-		}
-	} else {
-		console.log('Notifications are not supported');
-	}
-}
-
-function testNotification() {
-	navigator.serviceWorker.ready.then(function(w) {
-		w.showNotification('New message', {
-			body: 'New message',
-			actions: [
-				{ action: 'like', title: 'Like' },
-				{ action: 'reply', title: 'Reply' }
-			]
-		})
+	messaging.onTokenRefresh(function(token) {
+		onToken(token, true);
 	});
-}
 
-function onSubscribed(subscription) {
-	var endpoint = subscription.endpoint;
+	messaging.requestPermission().then(function() {
+		console.log('Notification permission granted');
 
-	document.querySelector('.js-key').innerHTML = endpoint.substring(endpoint.lastIndexOf('/') + 1);
-
-	console.log('Subscribed to push messages: ' + endpoint);
-}
-
-function onUnsubscribed(subscription) {
-	console.log('Unsubscribed from push messages: ' + subscription.endpoint);
-}
-
-function subscribe() {
-	navigator.serviceWorker.ready.then(function(serviceWorker) {
-		serviceWorker.pushManager.subscribe({ userVisibleOnly: true }).then(onSubscribed).catch(function(e) {
-			console.error('Subscription failed: ' + e);
-
-			getToggle().checked = false;
+		messaging.getToken().then(function(token) {
+			onToken(token, false);
+		}).catch(function(e) {
+			console.log('Unable to retrieve token ', e);
 		});
+	}).catch(function(e) {
+		console.log('Permission denied', e);
+	});
+
+	messaging.onMessage(function(payload) {
+		console.log('Foreground message received', payload);
+
+		getNotificationDiv().innerHTML = JSON.stringify(payload);
 	});
 }
 
-function unsubscribe() {
-	navigator.serviceWorker.ready.then(function(serviceWorker) {
-		serviceWorker.pushManager.getSubscription().then(function(subscription) {
-			if(subscription) {
-				subscription.unsubscribe().then(function() {
-					onUnsubscribed(subscription);
-				}).catch(function(e) {
-					console.error('Failed to unsubscribe from push messages: ' + e);
-				});
-			} else {
-				console.log('Not currently subscribed to push messages');
-			}
-		});
-	});
+function getKeyDiv() {
+	return document.querySelector('.js-key');
+}
+
+function getNotificationDiv() {
+	return document.querySelector('.js-notification');
+}
+
+function onToken(token, refresh) {
+	console.log('Token (refresh: ' + refresh + ')', token);
+
+	getKeyDiv().innerHTML = token;
 }

@@ -1,9 +1,16 @@
-'use strict';
+importScripts('https://www.gstatic.com/firebasejs/4.2.0/firebase-app.js');
+importScripts('https://www.gstatic.com/firebasejs/4.2.0/firebase-messaging.js');
 
-console.log('service worker created');
+console.log('Initializing service worker');
 
-self.addEventListener('push', function(event) {
-	console.log('Received a push message', event);
+firebase.initializeApp({
+	'messagingSenderId': '102046236655'
+});
+
+const messaging = firebase.messaging();
+
+messaging.setBackgroundMessageHandler(function(payload) {
+	console.log('Received background push message', payload);
 
 	// todo: build from the event
 	self.registration.showNotification('Budget Recommendation', {
@@ -18,5 +25,5 @@ self.addEventListener('push', function(event) {
 });
 
 self.addEventListener('notificationclick', function(event) {
-	console.log('CLICKED ' + event.action);
-}, false);
+	// handle
+});
