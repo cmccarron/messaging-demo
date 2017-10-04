@@ -5,7 +5,7 @@ window.addEventListener('load', initialize);
 function initialize() {
 	console.log('Initializing application');
 	
-	const config = {
+	var config = {
 		apiKey: "AIzaSyB2i9SU0sLYYbKc6u2btYHtmEOEtkqiqss",
 		authDomain: "media-group-notifications.firebaseapp.com",
 		databaseURL: "https://media-group-notifications.firebaseio.com",
@@ -16,7 +16,7 @@ function initialize() {
 
 	firebase.initializeApp(config);
 
-	const messaging = firebase.messaging();	
+	var messaging = firebase.messaging();
 
 	// Manually wire up the service worker since the automatic configuration won't find it unless it's
 	// at the root. This allows the app to be hosted from a context root i.e. https://www.apps.com/myapp/
@@ -49,7 +49,15 @@ function initialize() {
 	messaging.onMessage(function(payload) {
 		console.log('Foreground message received', payload);
 
-		getNotificationDiv().innerHTML = JSON.stringify(payload);
+		var json = JSON.stringify(payload);
+		var div = getNotificationDiv();
+
+		div.innerHTML = new Date() + ': ' + json + '<br>' + div.innerHTML;
+
+		var notification = new Notification('Foregorund Message: ' + payload.data.title, {
+			body: json,
+			icon: 'images/ccard.png'
+		});
 	});
 }
 

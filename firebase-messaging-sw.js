@@ -7,23 +7,27 @@ firebase.initializeApp({
 	'messagingSenderId': '102046236655'
 });
 
-const messaging = firebase.messaging();
+var messaging = firebase.messaging();
 
 messaging.setBackgroundMessageHandler(function(payload) {
-	console.log('Received background push message', payload);
+	console.log('Background message received', payload);
 
 	// todo: build from the event
-	self.registration.showNotification('Budget Recommendation', {
-		body: 'What would you like to do with this budget recommendation?',
+	self.registration.showNotification('Background Message: ' + payload.data.title, {
+		body: payload.data.body,
 		icon: 'images/ccard.png',
 		vibrate: [200, 100, 200, 100, 200, 100, 400],
 		actions: [
 			{ action: 'accept', title: 'Accept', icon: 'images/yes.png' },
 			{ action: 'decline', title: 'Decline', icon: 'images/no.png' }
 		]
-	})
+	});
 });
 
 self.addEventListener('notificationclick', function(event) {
-	// handle
+	console.log('notification clicked');
+
+	self.registration.showNotification('Action Clicked', {
+		body: 'You clicked ' + event.action;
+	})
 });
